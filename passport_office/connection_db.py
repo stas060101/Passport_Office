@@ -11,6 +11,9 @@ try:
     cursor.execute(sql)
     conn.close()
 
+    with app.app_context():
+        db.create_all()
+
 except errors.DuplicateDatabase:
     with app.app_context():
         db.create_all()
