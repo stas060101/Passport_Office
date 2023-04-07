@@ -1,0 +1,4 @@
+.idea
+__pycache__
+passport_office/__pycache__
+*.pyc
