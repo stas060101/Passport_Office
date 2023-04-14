@@ -31,8 +31,8 @@ class Marriage(db.Model):
     __tablename__ = "marriage"
 
     id = db.Column(db.Integer, primary_key=True)
-    husband_id = db.Column(db.Integer, db.ForeignKey('person.id'))
-    wife_id = db.Column(db.Integer, db.ForeignKey('person.id'))
+    husband_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
+    wife_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
     date_of_marriage = db.Column(db.DateTime, nullable=False)
 
     husband = db.relationship('Person', foreign_keys="Marriage.husband_id")
@@ -58,7 +58,6 @@ class Death(db.Model):
 
 
 class SexChange(db.Model):
-
     id = db.Column(db.Integer, primary_key=True)
     person_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
     date_of_change = db.Column(db.DateTime, nullable=False)
@@ -85,7 +84,7 @@ class Adoption(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     adoptive_father_id = db.Column(db.Integer, db.ForeignKey('person.id'))
     adoptive_mother_id = db.Column(db.Integer, db.ForeignKey('person.id'))
-    adopted_child_id = db.Column(db.Integer, db.ForeignKey('person.id'))
+    adopted_child_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
     date_of_adopt = db.Column(db.DateTime, nullable=False)
 
     adoptive_father = db.relationship('Person', foreign_keys="Adoption.adoptive_father_id")
@@ -107,8 +106,8 @@ class Genealogy(db.Model):
     __tablename__ = "genealogy"
 
     id = db.Column(db.Integer, primary_key=True)
-    person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
-    parent_id = db.Column(db.Integer, db.ForeignKey('person.id'))
+    person_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
     generation = db.Column(db.Integer, nullable=False)
 
     person = db.relationship('Person', foreign_keys="Genealogy.person_id")

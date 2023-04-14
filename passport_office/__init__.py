@@ -10,6 +10,3 @@ app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 db = SQLAlchemy(app)
 
 from passport_office import models, connection_db
-
-
-
