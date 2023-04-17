@@ -1,15 +1,18 @@
-from passport_office import db
+import sqlalchemy
+from sqlalchemy.orm import relationship
+
+Base = sqlalchemy.ext.declarative.declarative_base()
 
 
-class Person(db.Model):
+class Person(Base):
     __tablename__ = "person"
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
-    last_name = db.Column(db.String(128), nullable=False)
-    middle_name = db.Column(db.String(128))
-    date_of_birth = db.Column(db.String(50), nullable=False)
-    sex = db.Column(db.String(30), nullable=False)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    name = sqlalchemy.Column(sqlalchemy.String(128), nullable=False)
+    last_name = sqlalchemy.Column(sqlalchemy.String(128), nullable=False)
+    middle_name = sqlalchemy.Column(sqlalchemy.String(128))
+    date_of_birth = sqlalchemy.Column(sqlalchemy.String(50), nullable=False)
+    sex = sqlalchemy.Column(sqlalchemy.String(30), nullable=False)
 
     def __init__(self, **kwargs):
         self.name = kwargs.get('name')
@@ -18,97 +21,97 @@ class Person(db.Model):
         self.name = kwargs.get('date_of_birth')
         self.name = kwargs.get('sex')
 
-    # marriage = db.relationship('Marriage', lazy=True)
-    death = db.relationship('Death', backref='person')
-    sex_change = db.relationship('SexChange', backref='person')
-    # birth = db.relationship('Birth', backref='person')
-    # adoption = db.relationship('Adoption', backref='person')
-    history = db.relationship('History', backref='person')
-    # genealogy = db.relationship('Genealogy', backref='person')
+    # marriage = relationship('Marriage', lazy=True)
+    death = relationship('Death', backref='person')
+    sex_change = relationship('SexChange', backref='person')
+    # birth = relationship('Birth', backref='person')
+    # adoption = relationship('Adoption', backref='person')
+    history = relationship('History', backref='person')
+    # genealogy = relationship('Genealogy', backref='person')
 
 
-class Marriage(db.Model):
+class Marriage(Base):
     __tablename__ = "marriage"
 
-    id = db.Column(db.Integer, primary_key=True)
-    husband_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    wife_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    date_of_marriage = db.Column(db.DateTime, nullable=False)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    husband_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    wife_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    date_of_marriage = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
 
-    husband = db.relationship('Person', foreign_keys="Marriage.husband_id")
-    wife = db.relationship('Person', foreign_keys="Marriage.wife_id")
+    husband = relationship('Person', foreign_keys="Marriage.husband_id")
+    wife = relationship('Person', foreign_keys="Marriage.wife_id")
 
-    divorce = db.relationship('Divorce', backref='marriage')
+    divorce = relationship('Divorce', backref='marriage')
 
 
-class Divorce(db.Model):
+class Divorce(Base):
     __tablename__ = "divorce"
 
-    id = db.Column(db.Integer, primary_key=True)
-    marriage_id = db.Column(db.Integer, db.ForeignKey('marriage.id'), nullable=False)
-    date_of_divorce = db.Column(db.DateTime, nullable=False)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    marriage_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('marriage.id'), nullable=False)
+    date_of_divorce = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
 
 
-class Death(db.Model):
+class Death(Base):
     __tablename__ = "death"
 
-    id = db.Column(db.Integer, primary_key=True)
-    person_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    date_of_death = db.Column(db.DateTime, nullable=False)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    date_of_death = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
 
 
-class SexChange(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    person_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    date_of_change = db.Column(db.DateTime, nullable=False)
-    new_sex = db.Column(db.VARCHAR(30), nullable=False)
+class SexChange(Base):
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    date_of_change = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
+    new_sex = sqlalchemy.Column(sqlalchemy.VARCHAR(30), nullable=False)
 
 
-class Birth(db.Model):
+class Birth(Base):
     __tablename__ = "birth"
 
-    id = db.Column(db.Integer, primary_key=True)
-    father_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    mother_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    child_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    date_of_birth = db.Column(db.DateTime, nullable=False)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    father_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    mother_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    child_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    date_of_birth = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
 
-    father = db.relationship('Person', foreign_keys="Birth.father_id")
-    mother = db.relationship('Person', foreign_keys="Birth.mother_id")
-    child = db.relationship('Person', foreign_keys="Birth.child_id")
+    father = relationship('Person', foreign_keys="Birth.father_id")
+    mother = relationship('Person', foreign_keys="Birth.mother_id")
+    child = relationship('Person', foreign_keys="Birth.child_id")
 
 
-class Adoption(db.Model):
+class Adoption(Base):
     __tablename__ = "adoption"
 
-    id = db.Column(db.Integer, primary_key=True)
-    adoptive_father_id = db.Column(db.Integer, db.ForeignKey('person.id'))
-    adoptive_mother_id = db.Column(db.Integer, db.ForeignKey('person.id'))
-    adopted_child_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    date_of_adopt = db.Column(db.DateTime, nullable=False)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    adoptive_father_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'))
+    adoptive_mother_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'))
+    adopted_child_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    date_of_adopt = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
 
-    adoptive_father = db.relationship('Person', foreign_keys="Adoption.adoptive_father_id")
-    adoptive_mother = db.relationship('Person', foreign_keys="Adoption.adoptive_mother_id")
-    adopted_child = db.relationship('Person', foreign_keys="Adoption.adopted_child_id")
+    adoptive_father = relationship('Person', foreign_keys="Adoption.adoptive_father_id")
+    adoptive_mother = relationship('Person', foreign_keys="Adoption.adoptive_mother_id")
+    adopted_child = relationship('Person', foreign_keys="Adoption.adopted_child_id")
 
 
-class History(db.Model):
+class History(Base):
     __tablename__ = "history"
 
-    id = db.Column(db.Integer, primary_key=True)
-    person_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    date_of_change = db.Column(db.DateTime, nullable=False)
-    changed_parameter = db.Column(db.String(100), nullable=False)
-    changed_value = db.Column(db.String(100), nullable=False)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    date_of_change = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
+    changed_parameter = sqlalchemy.Column(sqlalchemy.String(100), nullable=False)
+    changed_value = sqlalchemy.Column(sqlalchemy.String(100), nullable=False)
 
 
-class Genealogy(db.Model):
+class Genealogy(Base):
     __tablename__ = "genealogy"
 
-    id = db.Column(db.Integer, primary_key=True)
-    person_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    parent_id = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-    generation = db.Column(db.Integer, nullable=False)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    parent_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    generation = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
 
-    person = db.relationship('Person', foreign_keys="Genealogy.person_id")
-    parent = db.relationship('Person', foreign_keys="Genealogy.parent_id")
+    person = relationship('Person', foreign_keys="Genealogy.person_id")
+    parent = relationship('Person', foreign_keys="Genealogy.parent_id")
