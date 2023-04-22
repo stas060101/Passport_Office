@@ -1,6 +1,10 @@
 import sqlalchemy
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2327cbb (add drop_db, fix: config.py, run.py)
 Base = declarative_base()
 
 
@@ -62,6 +66,10 @@ class Death(Base):
 
 class SexChange(Base):
     __tablename__ = "person_sex_change"
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2327cbb (add drop_db, fix: config.py, run.py)
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
     date_of_change = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)

@@ -34,8 +34,6 @@ def run(drop=False):
         print(f'Database {db_name} created with user {db_user} and password {password}')
         extend_db_by_models()
         print('Database extend successfully')
-    else:
-        print('Error creating database')
 
 
 if __name__ == "__main__":

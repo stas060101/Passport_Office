@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # Drop Postgres Database with PSQL
 
 # Variables

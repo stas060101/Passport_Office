@@ -19,7 +19,7 @@ export PGPASSWORD='password'
 #export PGPASSWORD=$password
 
 ## Create Database
-psql -U postgres -h $host -p $port -c "CREATE DATABASE $db_name;"
+#psql -U postgres -h $host -p $port -c "CREATE DATABASE $db_name;"
 ##
 ### Create User
 psql -U postgres -h $host -p $port -c "CREATE USER $user WITH PASSWORD '$password';"

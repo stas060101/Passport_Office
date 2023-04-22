@@ -8,9 +8,8 @@ packages = [{include = "passport_office"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-flask = "^2.2.3"
-flask-sqlalchemy = "^3.0.3"
 psycopg2-binary = "^2.9.6"
+sqlalchemy = "^2.0.10"
 
 
 [build-system]
