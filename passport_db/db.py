@@ -1,9 +1,7 @@
 import contextlib
 
-import manager_lib.lib
-import sqlalchemy
 import sqlalchemy.orm
-
+import manager_lib.lib
 from passport_office import models
 from passport_office.config import DB_NAME
 
