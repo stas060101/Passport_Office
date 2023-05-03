@@ -1,5 +1,5 @@
 import subprocess
-from passport_office.config import DB_SCRIPT,DROP_DB_SCRIPT, DB_NAME, PORT, PASSWORD, USER, HOST
+from passport_office.config import DB_SCRIPT, DROP_DB_SCRIPT, DB_NAME, PORT, PASSWORD, USER, HOST
 
 db_name = DB_NAME
 db_user = USER

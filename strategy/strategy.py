@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 import json
-import os
 from abc import ABC, abstractmethod
 
 import xmltodict
 
+from passport_office.config import JSON_PATH, JSON_PATH_TO_SAVE, XML_PATH_TO_SAVE
+
 
 class Context:
-    json_path = 'files/json.json'
-    json_path_to_save = f'/home/{os.environ.get("USER")}/PycharmProjects/Passport_Office/strategy/files/json_saved.json'
-    xml_path_to_save = f'/home/{os.environ.get("USER")}/PycharmProjects/Passport_Office/strategy/files/xml_saved.xml'
 
     def __init__(self, strategy: Strategy):
         self._strategy = strategy
@@ -26,15 +24,15 @@ class Context:
     def do_some_business_logic(self) -> None:
         print(f"Context: Saving data via {self.__repr__()}")
         self._strategy.do_algorithm(
-            json=self.json_path,
-            json_to_save=self.json_path_to_save,
-            xml_to_save=self.xml_path_to_save
+            json=JSON_PATH,
+            json_to_save=JSON_PATH_TO_SAVE,
+            xml_to_save=XML_PATH_TO_SAVE
         )
 
     def __repr__(self):
         if "JSONStrategy" in str(self._strategy):
             return "JSONStrategy"
-        
+
         elif "XMLStrategy" in str(self._strategy):
             return "XMLStrategy"
 
@@ -44,21 +42,23 @@ class Strategy(ABC):
     def do_algorithm(self, **kwargs):
         pass
 
+    @staticmethod
+    def json_load(**kwargs):
+        with open(kwargs.get("json"), "r") as json_file:
+            json_dict = json.load(json_file)
+        return json_dict
+
 
 class JSONStrategy(Strategy):
-    def do_algorithm(self, **kwargs: str):
-        with open(kwargs.get("json"), "r") as json_file:
-            json_data = json.load(json_file)
+    def do_algorithm(self, **kwargs: str) -> None:
         with open(kwargs.get("json_to_save"), "w") as json_file_to_save:
-            json.dump(json_data, json_file_to_save, indent=3)
+            json.dump(JSONStrategy.json_load(**kwargs), json_file_to_save, indent=3)
 
 
 class XMLStrategy(Strategy):
-    def do_algorithm(self, **kwargs: str):
-        with open(kwargs.get("json"), "r") as json_file:
-            python_dict = json.load(json_file)
+    def do_algorithm(self, **kwargs: str) -> None:
         with open(kwargs.get("xml_to_save"), "w") as xml_file:
-            xmltodict.unparse(python_dict, output=xml_file, pretty=True)
+            xmltodict.unparse(XMLStrategy.json_load(**kwargs), output=xml_file, pretty=True)
 
 
 if __name__ == "__main__":
