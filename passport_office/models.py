@@ -18,13 +18,6 @@ class Person(Base):
     date_of_birth = sqlalchemy.Column(sqlalchemy.String(50), nullable=False)
     sex = sqlalchemy.Column(sqlalchemy.String(30), nullable=False)
 
-    def __init__(self, **kwargs):
-        self.name = kwargs.get('name')
-        self.name = kwargs.get('last_name')
-        self.name = kwargs.get('middle_name')
-        self.name = kwargs.get('date_of_birth')
-        self.name = kwargs.get('sex')
-
     # marriage = relationship('Marriage', lazy=True)
     death = relationship('Death', backref='person')
     sex_change = relationship('SexChange', backref='person')
@@ -32,6 +25,13 @@ class Person(Base):
     # adoption = relationship('Adoption', backref='person')
     history = relationship('History', backref='person')
     # genealogy = relationship('Genealogy', backref='person')
+
+    def __init__(self, name, last_name, middle_name, date_of_birth, sex):
+        self.name = name
+        self.last_name = last_name
+        self.middle_name = middle_name
+        self.date_of_birth = date_of_birth
+        self.sex = sex
 
 
 class Marriage(Base):
@@ -44,8 +44,12 @@ class Marriage(Base):
 
     husband = relationship('Person', foreign_keys="Marriage.husband_id")
     wife = relationship('Person', foreign_keys="Marriage.wife_id")
-
     divorce = relationship('Divorce', backref='marriage')
+
+    def __init__(self, husband_id, wife_id, date_of_marriage):
+        self.husband_id = husband_id
+        self.wife_id = wife_id
+        self.date_of_marriage = date_of_marriage
 
 
 class Divorce(Base):
@@ -55,6 +59,10 @@ class Divorce(Base):
     marriage_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('marriage.id'), nullable=False)
     date_of_divorce = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
 
+    def __init__(self, marriage_id, date_of_divorce):
+        self.marriage_id = marriage_id
+        self.date_of_divorce = date_of_divorce
+
 
 class Death(Base):
     __tablename__ = "death"
@@ -62,6 +70,10 @@ class Death(Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
     date_of_death = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
+
+    def __init__(self, person_id, date_of_death):
+        self.person_id = person_id
+        self.date_of_death = date_of_death
 
 
 class SexChange(Base):
@@ -74,6 +86,11 @@ class SexChange(Base):
     person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
     date_of_change = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
     new_sex = sqlalchemy.Column(sqlalchemy.VARCHAR(30), nullable=False)
+
+    def __init__(self, person_id, date_of_change, new_sex):
+        self.person_id = person_id
+        self.date_of_change = date_of_change
+        self.new_sex = new_sex
 
 
 class Birth(Base):
@@ -89,6 +106,12 @@ class Birth(Base):
     mother = relationship('Person', foreign_keys="Birth.mother_id")
     child = relationship('Person', foreign_keys="Birth.child_id")
 
+    def __init__(self, father_id, mother_id, child_id, date_of_birth):
+        self.father_id = father_id
+        self.mother_id = mother_id
+        self.child_id = child_id
+        self.date_of_birth = date_of_birth
+
 
 class Adoption(Base):
     __tablename__ = "adoption"
@@ -103,6 +126,12 @@ class Adoption(Base):
     adoptive_mother = relationship('Person', foreign_keys="Adoption.adoptive_mother_id")
     adopted_child = relationship('Person', foreign_keys="Adoption.adopted_child_id")
 
+    def __init__(self, adoptive_father_id, adoptive_mother_id, adopted_child_id, date_of_adopt):
+        self.adoptive_father_id = adoptive_father_id
+        self.adoptive_mother_id = adoptive_mother_id
+        self.adopted_child_id = adopted_child_id
+        self.date_of_adopt = date_of_adopt
+
 
 class History(Base):
     __tablename__ = "history"
@@ -112,6 +141,12 @@ class History(Base):
     date_of_change = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
     changed_parameter = sqlalchemy.Column(sqlalchemy.String(100), nullable=False)
     changed_value = sqlalchemy.Column(sqlalchemy.String(100), nullable=False)
+
+    def __init__(self, person_id, date_of_change, changed_parameter, changed_value):
+        self.person_id = person_id
+        self.date_of_change = date_of_change
+        self.changed_parameter = changed_parameter
+        self.changed_value = changed_value
 
 
 class Genealogy(Base):
@@ -124,3 +159,8 @@ class Genealogy(Base):
 
     person = relationship('Person', foreign_keys="Genealogy.person_id")
     parent = relationship('Person', foreign_keys="Genealogy.parent_id")
+
+    def __init__(self, person_id, parent_id, generation):
+        self.person_id = person_id
+        self.parent_id = parent_id
+        self.generation = generation

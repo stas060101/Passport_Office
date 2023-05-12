@@ -22,15 +22,7 @@ def person_from_db_id(pers_id) -> int:
 
 def person_registration(name: str, last_name: str, middle_name: str, date_of_birth: datetime, sex: str):
     try:
-        # person = Person(name, last_name, middle_name, date_of_birth, sex)
-        person = Person(
-            name=name,
-            last_name=last_name,
-            middle_name=middle_name,
-            date_of_birth=date_of_birth,
-            sex=sex
-        )
-
+        person = Person(name, last_name, middle_name, date_of_birth, sex)
         db_add(person)
 
     except DatabaseError:
@@ -47,34 +39,11 @@ def marriage_registration(husband_id: int, wife_id: int, date_of_marriage: datet
         if not wife_db_id:
             raise Exception('No wife_db_id were found for "marriage_registration" func')
 
-        marriage = Marriage(
-            husband_id=husband_db_id,
-            wife_id=wife_db_id,
-            date_of_marriage=date_of_marriage
-        )
-
+        marriage = Marriage(husband_db_id, wife_db_id, date_of_marriage)
         db_add(marriage)
 
     except DatabaseError:
         db.session.rollback()
-
-
-# def marriage_add(hus_id, wif_id, date_of_marriage):
-#     try:
-#         husband_id = (Person.query.filter_by(id=hus_id).first()).id
-#         wife_id = (Person.query.filter_by(id=wif_id).first()).id
-#
-#         marriage = Marriage(
-#             husband_id=husband_id,
-#             wife_id=wife_id,
-#             date_of_marriage=date_of_marriage
-#         )
-#
-#         db.session.add(marriage)
-#         db.session.commit()
-#
-#     except DatabaseError:
-#         db.session.rollback()
 
 
 def divorce_registration(marriage_id: int, date_of_divorce: datetime):
@@ -84,11 +53,7 @@ def divorce_registration(marriage_id: int, date_of_divorce: datetime):
         if not marriage_db_id:
             raise Exception('No marriage_id was found for "divorce_registration" func')
 
-        divorce = Divorce(
-            marriage_id=marriage_db_id,
-            date_of_divorce=date_of_divorce
-        )
-
+        divorce = Divorce(marriage_db_id, date_of_divorce)
         db_add(divorce)
 
     except DatabaseError:
@@ -114,11 +79,7 @@ def death_registration(person_id: str, date_of_death: datetime):
         if not person_death_id:
             raise Exception('No person was found for "death_registration" func')
 
-        death = Death(
-            person_id=person_death_id,
-            date_of_death=date_of_death
-        )
-
+        death = Death(person_death_id, date_of_death)
         db_add(death)
 
     except DatabaseError:
@@ -131,12 +92,7 @@ def sex_change_registration(person_id: str, date_of_change: datetime, new_sex: s
         if not person_sex_changing_id:
             raise Exception('No person was found for "sex_change_registration" func')
 
-        sex_change = SexChange(
-            person_id=person_sex_changing_id,
-            date_of_change=date_of_change,
-            new_sex=new_sex
-        )
-
+        sex_change = SexChange(person_sex_changing_id, date_of_change, new_sex)
         db_add(sex_change)
 
     except DatabaseError:
@@ -156,13 +112,7 @@ def birth_registration(father_id: int, mother_id: int, child_id: int, date_of_bi
         if not child_db_id:
             raise Exception('No child_db_id was found for "birth_registration" func')
 
-        birth = Birth(
-            father_id=father_db_id,
-            mother_id=mother_db_id,
-            child_id=child_db_id,
-            date_of_birth=date_of_birth
-        )
-
+        birth = Birth(father_db_id, mother_db_id, child_db_id, date_of_birth)
         db_add(birth)
 
     except DatabaseError:
@@ -182,13 +132,7 @@ def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of
         if not child_db_id:
             raise Exception('No child_db_id was found for adoption_registration')
 
-        adoption = Adoption(
-            adoptive_father_id=father_db_id,
-            adoptive_mother_id=mother_db_id,
-            adopted_child_id=child_db_id,
-            date_of_adopt=date_of_adopt
-        )
-
+        adoption = Adoption(father_db_id, mother_db_id, child_db_id, date_of_adopt)
         db_add(adoption)
 
     except DatabaseError:
@@ -202,13 +146,7 @@ def history_add(person_id: int, date_of_change: datetime, changed_parameter: str
         if not person_db_id:
             raise Exception('No person was found for "history_add" func')
 
-        history = History(
-            person_id=person_db_id,
-            date_of_change=date_of_change,
-            changed_parameter=changed_parameter,
-            changed_value=changed_value
-        )
-
+        history = History(person_db_id, date_of_change, changed_parameter, changed_value)
         db_add(history)
 
     except DatabaseError:
@@ -225,12 +163,7 @@ def genealogy_add(person_id: int, parent_id: int, generation: int):
         if not parent_db_id:
             raise Exception('No parent_db_id was found for "genealogy_add" func')
 
-        genealogy = Genealogy(
-            person_id=person_db_id,
-            parent_id=parent_db_id,
-            generation=generation,
-        )
-
+        genealogy = Genealogy(person_db_id, parent_db_id, generation)
         db_add(genealogy)
 
     except DatabaseError:
