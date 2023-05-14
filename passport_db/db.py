@@ -11,8 +11,6 @@ from passport_office.config import DB_NAME
 class PassportDB(metaclass=manager_lib.lib.Singleton):
 
     def __init__(self, timeout=60, create_all=False):
-        # Licenses cache optimized for memory (so we won't duplicate license texts when retrieving them)
-        self.license_cache = {}
 
         self.is_closed = False
         self.engine = sqlalchemy.create_engine(manager_lib.lib.get_connection_string(DB_NAME))

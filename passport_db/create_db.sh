@@ -24,4 +24,4 @@ psql -U postgres -h $host -p $port -c "CREATE USER $db_user WITH PASSWORD '$pass
 # Grant Permissions
 psql -U postgres -h $host -p $port -c "GRANT ALL PRIVILEGES ON DATABASE $db_name TO $db_user;"
 
-echo "Database $db_name created with user $user and password $password"
+echo "Database $db_name created with user $db_user and password $password"
