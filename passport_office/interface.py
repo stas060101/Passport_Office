@@ -2,31 +2,38 @@ from datetime import datetime
 
 from sqlalchemy.exc import DatabaseError, NoResultFound
 
-from passport_office import db
+from passport_db.db import PassportDB
 from passport_office.models import Person, Marriage, Divorce, Death, SexChange, Birth, Adoption, History, Genealogy
+
+db = PassportDB()
 
 
 def db_add(instance):
-    db.session.add(instance)
-    db.session.commit()
+    with db.session_scope() as session:
+        session.add(instance)
+        session.commit()
 
 
 def db_remove(instance):
-    db.session.delete(instance)
-    db.session.commit()
+    with db.session_scope() as session:
+        session.delete(instance)
+        session.commit()
 
 
 def person_from_db_id(pers_id) -> int:
-    return (Person.query.filter_by(id=pers_id).first()).id
+    with db.session_scope() as session:
+        return (session.query(Person).filter_by(id=pers_id).first()).id
 
 
-def person_registration(name: str, last_name: str, middle_name: str, date_of_birth: datetime, sex: str):
+def person_registration(name: str, last_name: str, middle_name: str, date_of_birth: str, sex: str):
     try:
         person = Person(name, last_name, middle_name, date_of_birth, sex)
-        db_add(person)
+        with db.session_scope() as session:
+            session.add(person)
+            session.commit()
 
     except DatabaseError:
-        db.session.rollback()
+        db.session_scope.rollback()
 
 
 def marriage_registration(husband_id: int, wife_id: int, date_of_marriage: datetime):
@@ -119,7 +126,7 @@ def birth_registration(father_id: int, mother_id: int, child_id: int, date_of_bi
         db.session.rollback()
 
 
-def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of_adopt: datetime):
+def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of_adopt: str):
     try:
         father_db_id = person_from_db_id(father_id)
         mother_db_id = person_from_db_id(mother_id)
@@ -134,6 +141,10 @@ def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of
 
         adoption = Adoption(father_db_id, mother_db_id, child_db_id, date_of_adopt)
         db_add(adoption)
+        with db.session_scope() as session:
+            adoption = session.query(Adoption).all()[0]
+            name_child = adoption.adoptive_child.name
+            print(name_child)
 
     except DatabaseError:
         db.session.rollback()
