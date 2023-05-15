@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from sqlalchemy.exc import DatabaseError, NoResultFound
+from sqlalchemy.exc import DatabaseError
 
 from passport_db.db import PassportDB
 from passport_office.models import Person, Marriage, Divorce, Death, SexChange, Birth, Adoption, History, Genealogy
@@ -8,26 +6,15 @@ from passport_office.models import Person, Marriage, Divorce, Death, SexChange, 
 db = PassportDB()
 
 
-def db_add(instance):
+def person_from_db(pers_id) -> int:
     with db.session_scope() as session:
-        session.add(instance)
-        session.commit()
-
-
-def db_remove(instance):
-    with db.session_scope() as session:
-        session.delete(instance)
-        session.commit()
-
-
-def person_from_db_id(pers_id) -> int:
-    with db.session_scope() as session:
-        return (session.query(Person).filter_by(id=pers_id).first()).id
+        return session.query(Person).filter_by(id=pers_id).first()
 
 
 def person_registration(name: str, last_name: str, middle_name: str, date_of_birth: str, sex: str):
     try:
         person = Person(name, last_name, middle_name, date_of_birth, sex)
+
         with db.session_scope() as session:
             session.add(person)
             session.commit()
@@ -36,91 +23,99 @@ def person_registration(name: str, last_name: str, middle_name: str, date_of_bir
         db.session_scope.rollback()
 
 
-def marriage_registration(husband_id: int, wife_id: int, date_of_marriage: datetime):
+def marriage_registration(husband_id: int, wife_id: int, date_of_marriage: str):
     try:
-        husband_db_id = person_from_db_id(husband_id)
-        wife_db_id = person_from_db_id(wife_id)
+        husband_db = person_from_db(husband_id)
+        wife_db = person_from_db(wife_id)
 
-        if not husband_db_id:
+        if husband_db is None:
             raise Exception('No husband_db_id were found for "marriage_registration" func')
-        if not wife_db_id:
+        if wife_db is None:
             raise Exception('No wife_db_id were found for "marriage_registration" func')
 
-        marriage = Marriage(husband_db_id, wife_db_id, date_of_marriage)
-        db_add(marriage)
+        marriage = Marriage(husband_db.id, wife_db.id, date_of_marriage)
+
+        with db.session_scope() as session:
+            session.add(marriage)
+            session.commit()
 
     except DatabaseError:
         db.session.rollback()
 
 
-def divorce_registration(marriage_id: int, date_of_divorce: datetime):
+def divorce_registration(marriage_id: int, date_of_divorce: str):
     try:
-        marriage_db_id = (Marriage.query.filter_by(id=marriage_id).first()).id
+        with db.session_scope() as session:
+            marriage_db = session.query(Marriage).filter_by(id=marriage_id).first()
 
-        if not marriage_db_id:
-            raise Exception('No marriage_id was found for "divorce_registration" func')
+            if marriage_db is None:
+                raise Exception('No marriage_id was found for "divorce_registration" func')
 
-        divorce = Divorce(marriage_db_id, date_of_divorce)
-        db_add(divorce)
+            divorce = Divorce(marriage_db.id, date_of_divorce)
+
+            session.add(divorce)
+            marriage_db.status = "annulled"  # marriage status on db
+            session.commit()
 
     except DatabaseError:
         db.session.rollback()
 
 
-def annulment_marriage(marriage_id: str):
+def death_registration(person_id: int, date_of_death: str):
     try:
-        try:
-            marriage_obj = Marriage.query.filter_by(id=marriage_id).first()
-            db_remove(marriage_obj)
-
-        except NoResultFound:
-            raise Exception('No marriage instance was found in database for "annulment_marriage" func')
-
-    except DatabaseError:
-        db.session.rollback()
-
-
-def death_registration(person_id: str, date_of_death: datetime):
-    try:
-        person_death_id = person_from_db_id(person_id)
-        if not person_death_id:
+        person_death = person_from_db(person_id)
+        if person_death is None:
             raise Exception('No person was found for "death_registration" func')
 
-        death = Death(person_death_id, date_of_death)
-        db_add(death)
+        death = Death(person_death.id, date_of_death)
+
+        with db.session_scope() as session:
+            session.add(death)
+            session.commit()
 
     except DatabaseError:
         db.session.rollback()
 
 
-def sex_change_registration(person_id: str, date_of_change: datetime, new_sex: str):
+def sex_change_registration(person_id: int, date_of_change: str, new_sex: str):
     try:
-        person_sex_changing_id = person_from_db_id(person_id)
-        if not person_sex_changing_id:
+        person_sex_changing = person_from_db(person_id)
+        if person_sex_changing is None:
             raise Exception('No person was found for "sex_change_registration" func')
 
-        sex_change = SexChange(person_sex_changing_id, date_of_change, new_sex)
-        db_add(sex_change)
+        sex_change = SexChange(person_sex_changing.id, date_of_change, new_sex)
+
+        with db.session_scope() as session:
+            session.add(sex_change)
+            session.commit()
 
     except DatabaseError:
         db.session.rollback()
 
 
-def birth_registration(father_id: int, mother_id: int, child_id: int, date_of_birth: datetime):
+def birth_registration(father_id: int, mother_id: int, child_id: int, date_of_birth: str):
     try:
-        father_db_id = person_from_db_id(father_id)
-        mother_db_id = person_from_db_id(mother_id)
-        child_db_id = person_from_db_id(child_id)
+        father_db = person_from_db(father_id)
+        mother_db = person_from_db(mother_id)
+        child_db = person_from_db(child_id)
 
-        if not father_db_id:
+        if father_db is None:
             raise Exception('No father_db_id was found for "birth_registration" func')
-        if not mother_db_id:
+        if mother_db is None:
             raise Exception('No mother_db_id was found for "birth_registration" func')
-        if not child_db_id:
+        if child_db is None:
             raise Exception('No child_db_id was found for "birth_registration" func')
 
-        birth = Birth(father_db_id, mother_db_id, child_db_id, date_of_birth)
-        db_add(birth)
+        birth = Birth(father_db.id, mother_db.id, child_db.id, date_of_birth)
+
+        with db.session_scope() as session:
+            session.add(birth)
+            session.commit()
+
+        # with db.session_scope() as session:
+        #     birth = session.query(Birth).all()[0]
+        #     name = birth.child.last_name
+        #     print(name)
 
     except DatabaseError:
         db.session.rollback()
@@ -128,37 +123,44 @@ def birth_registration(father_id: int, mother_id: int, child_id: int, date_of_bi
 
 def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of_adopt: str):
     try:
-        father_db_id = person_from_db_id(father_id)
-        mother_db_id = person_from_db_id(mother_id)
-        child_db_id = person_from_db_id(child_id)
+        father_db = person_from_db(father_id)
+        mother_db = person_from_db(mother_id)
+        child_db = person_from_db(child_id)
 
-        if not father_db_id:
+        if father_db is None:
             raise Exception('No father_db_id was found for adoption_registration')
-        if not mother_db_id:
+        if mother_db is None:
             raise Exception('No mother_db_id was found for adoption_registration')
-        if not child_db_id:
+        if child_db is None:
             raise Exception('No child_db_id was found for adoption_registration')
 
-        adoption = Adoption(father_db_id, mother_db_id, child_db_id, date_of_adopt)
-        db_add(adoption)
+        adoption = Adoption(father_db.id, mother_db.id, child_db.id, date_of_adopt)
+
         with db.session_scope() as session:
-            adoption = session.query(Adoption).all()[0]
-            name_child = adoption.adoptive_child.name
-            print(name_child)
+            session.add(adoption)
+            session.commit()
+
+        # with db.session_scope() as session:
+        #     adoption = session.query(Adoption).all()[0]
+        #     name_child = adoption.adoptive_child.name
+        #     print(name_child)
 
     except DatabaseError:
         db.session.rollback()
 
 
-def history_add(person_id: int, date_of_change: datetime, changed_parameter: str, changed_value: str):
+def history_add(person_id: int, date_of_change: str, changed_parameter: str, changed_value: str):
     try:
-        person_db_id = person_from_db_id(person_id)
+        person_db = person_from_db(person_id)
 
-        if not person_db_id:
+        if person_db is None:
             raise Exception('No person was found for "history_add" func')
 
-        history = History(person_db_id, date_of_change, changed_parameter, changed_value)
-        db_add(history)
+        history = History(person_db.id, date_of_change, changed_parameter, changed_value)
+
+        with db.session_scope() as session:
+            session.add(history)
+            session.commit()
 
     except DatabaseError:
         db.session.rollback()
@@ -166,16 +168,19 @@ def history_add(person_id: int, date_of_change: datetime, changed_parameter: str
 
 def genealogy_add(person_id: int, parent_id: int, generation: int):
     try:
-        person_db_id = person_from_db_id(person_id)
-        parent_db_id = person_from_db_id(parent_id)
+        person_db = person_from_db(person_id)
+        parent_db = person_from_db(parent_id)
 
-        if not person_db_id:
+        if person_db is None:
             raise Exception('No person_db_id was found for "genealogy_add" func')
-        if not parent_db_id:
+        if parent_db is None:
             raise Exception('No parent_db_id was found for "genealogy_add" func')
 
-        genealogy = Genealogy(person_db_id, parent_db_id, generation)
-        db_add(genealogy)
+        genealogy = Genealogy(person_db.id, parent_db.id, generation)
+
+        with db.session_scope() as session:
+            session.add(genealogy)
+            session.commit()
 
     except DatabaseError:
         db.session.rollback()
