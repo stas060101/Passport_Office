@@ -12,7 +12,7 @@ class Person(Base):
     name = sqlalchemy.Column(sqlalchemy.String(128), nullable=False)
     last_name = sqlalchemy.Column(sqlalchemy.String(128), nullable=False)
     middle_name = sqlalchemy.Column(sqlalchemy.String(128))
-    date_of_birth = sqlalchemy.Column(sqlalchemy.String(50), nullable=False)
+    date_of_birth = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
     sex = sqlalchemy.Column(sqlalchemy.String(30), nullable=False)
 
     adopter_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("adoption.id"), nullable=True)

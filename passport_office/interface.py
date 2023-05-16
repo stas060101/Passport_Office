@@ -1,9 +1,14 @@
+import typer
+
 from sqlalchemy.exc import DatabaseError
 
+from datetime import datetime
 from passport_db.db import PassportDB
+from passport_office.chain import DataCheck, SexCheck, PersonCheck, MarriageCheck
 from passport_office.models import Person, Marriage, Divorce, Death, SexChange, Birth, Adoption, History, Genealogy
 
 db = PassportDB()
+app = typer.Typer()
 
 
 def person_from_db(pers_id) -> int:
@@ -11,7 +16,14 @@ def person_from_db(pers_id) -> int:
         return session.query(Person).filter_by(id=pers_id).first()
 
 
+@app.command()
 def person_registration(name: str, last_name: str, middle_name: str, date_of_birth: str, sex: str):
+    data_check = DataCheck()
+    sex_check = SexCheck()
+    data_check.set_next(sex_check)
+    data_check.check(data=date_of_birth, sex=sex)
+    date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d")
+
     try:
         person = Person(name, last_name, middle_name, date_of_birth, sex)
 
@@ -23,17 +35,30 @@ def person_registration(name: str, last_name: str, middle_name: str, date_of_bir
         db.session_scope.rollback()
 
 
+# @app.command()
+# def get_persons(names: list = None, last_names: list = None, middle_names: list = None):
+#     with db.session_scope() as session:
+#         query = session.query(Person)
+#         if names:
+#             query = query.filter(Person.name.in_(names))
+#         elif last_names:
+#             query = query.filter(Person.last_name.in_(last_names))
+#         elif middle_names:
+#             query = query.filter(Person.middle_name.in_(middle_names))
+#
+#         return query.all()
+
+
+@app.command()
 def marriage_registration(husband_id: int, wife_id: int, date_of_marriage: str):
     try:
-        husband_db = person_from_db(husband_id)
-        wife_db = person_from_db(wife_id)
+        data_check = DataCheck()
+        person_check = PersonCheck()
+        data_check.set_next(person_check)
+        data_check.check(data=date_of_marriage, person_ids=[husband_id, wife_id])
+        date_of_marriage = datetime.strptime(date_of_marriage, "%Y-%m-%d")
 
-        if husband_db is None:
-            raise Exception('No husband_db_id were found for "marriage_registration" func')
-        if wife_db is None:
-            raise Exception('No wife_db_id were found for "marriage_registration" func')
-
-        marriage = Marriage(husband_db.id, wife_db.id, date_of_marriage)
+        marriage = Marriage(husband_id, wife_id, date_of_marriage)
 
         with db.session_scope() as session:
             session.add(marriage)
@@ -43,31 +68,44 @@ def marriage_registration(husband_id: int, wife_id: int, date_of_marriage: str):
         db.session.rollback()
 
 
+def change_marriage_status(marriage_id):
+    with db.session_scope() as session:
+        marriage = session.query(Marriage).filter_by(id=marriage_id).one()
+        marriage.status = "annulled"
+        session.flush()
+        session.commit()
+
+
+@app.command()
 def divorce_registration(marriage_id: int, date_of_divorce: str):
     try:
+        data_check = DataCheck()
+        marriage_check = MarriageCheck()
+        data_check.set_next(marriage_check)
+        data_check.check(data=date_of_divorce, marriage_id=marriage_id)
+        date_of_divorce = datetime.strptime(date_of_divorce, "%Y-%m-%d")
+
         with db.session_scope() as session:
-            marriage_db = session.query(Marriage).filter_by(id=marriage_id).first()
-
-            if marriage_db is None:
-                raise Exception('No marriage_id was found for "divorce_registration" func')
-
-            divorce = Divorce(marriage_db.id, date_of_divorce)
+            divorce = Divorce(marriage_id, date_of_divorce)
 
             session.add(divorce)
-            marriage_db.status = "annulled"  # marriage status on db
+            change_marriage_status(marriage_id=marriage_id)  # marriage status on db
             session.commit()
 
     except DatabaseError:
         db.session.rollback()
 
 
+@app.command()
 def death_registration(person_id: int, date_of_death: str):
+    data_check = DataCheck()
+    person_check = PersonCheck()
+    data_check.set_next(person_check)
+    data_check.check(data=date_of_death, person_ids=[person_id])
+    date_of_death = datetime.strptime(date_of_death, "%Y-%m-%d")
     try:
-        person_death = person_from_db(person_id)
-        if person_death is None:
-            raise Exception('No person was found for "death_registration" func')
 
-        death = Death(person_death.id, date_of_death)
+        death = Death(person_id, date_of_death)
 
         with db.session_scope() as session:
             session.add(death)
@@ -77,13 +115,17 @@ def death_registration(person_id: int, date_of_death: str):
         db.session.rollback()
 
 
+@app.command()
 def sex_change_registration(person_id: int, date_of_change: str, new_sex: str):
+    data_check = DataCheck()
+    person_check = PersonCheck()
+    gender_check = SexCheck()
+    data_check.set_next(gender_check).set_next(person_check)
+    data_check.check(db=db, data=date_of_change, sex=new_sex, person_ids=[person_id])
+    date_of_change = datetime.strptime(date_of_change, "%Y-%m-%d")
     try:
-        person_sex_changing = person_from_db(person_id)
-        if person_sex_changing is None:
-            raise Exception('No person was found for "sex_change_registration" func')
 
-        sex_change = SexChange(person_sex_changing.id, date_of_change, new_sex)
+        sex_change = SexChange(person_id, date_of_change, new_sex)
 
         with db.session_scope() as session:
             session.add(sex_change)
@@ -93,20 +135,17 @@ def sex_change_registration(person_id: int, date_of_change: str, new_sex: str):
         db.session.rollback()
 
 
+@app.command()
 def birth_registration(father_id: int, mother_id: int, child_id: int, date_of_birth: str):
+    data_check = DataCheck()
+    person_check = PersonCheck()
+    data_check.set_next(person_check)
+    data_check.check(data=date_of_birth, person_ids=[father_id,mother_id,child_id])
+    date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d")
+
     try:
-        father_db = person_from_db(father_id)
-        mother_db = person_from_db(mother_id)
-        child_db = person_from_db(child_id)
 
-        if father_db is None:
-            raise Exception('No father_db_id was found for "birth_registration" func')
-        if mother_db is None:
-            raise Exception('No mother_db_id was found for "birth_registration" func')
-        if child_db is None:
-            raise Exception('No child_db_id was found for "birth_registration" func')
-
-        birth = Birth(father_db.id, mother_db.id, child_db.id, date_of_birth)
+        birth = Birth(father_id, mother_id, child_id, date_of_birth)
 
         with db.session_scope() as session:
             session.add(birth)
@@ -121,20 +160,17 @@ def birth_registration(father_id: int, mother_id: int, child_id: int, date_of_bi
         db.session.rollback()
 
 
+@app.command()
 def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of_adopt: str):
+    data_check = DataCheck()
+    person_check = PersonCheck()
+    data_check.set_next(person_check)
+    data_check.check(data=date_of_adopt, person_ids=[father_id,mother_id,child_id])
+    date_of_adopt = datetime.strptime(date_of_adopt, "%Y-%m-%d")
+
     try:
-        father_db = person_from_db(father_id)
-        mother_db = person_from_db(mother_id)
-        child_db = person_from_db(child_id)
 
-        if father_db is None:
-            raise Exception('No father_db_id was found for adoption_registration')
-        if mother_db is None:
-            raise Exception('No mother_db_id was found for adoption_registration')
-        if child_db is None:
-            raise Exception('No child_db_id was found for adoption_registration')
-
-        adoption = Adoption(father_db.id, mother_db.id, child_db.id, date_of_adopt)
+        adoption = Adoption(father_id, mother_id, child_id, date_of_adopt)
 
         with db.session_scope() as session:
             session.add(adoption)
@@ -149,14 +185,16 @@ def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of
         db.session.rollback()
 
 
-def history_add(person_id: int, date_of_change: str, changed_parameter: str, changed_value: str):
+@app.command()
+def get_person_history(person_id: int, date_of_change: str, changed_parameter: str, changed_value: str):
+    data_check = DataCheck()
+    person_check = PersonCheck()
+    data_check.set_next(person_check)
+    data_check.check(data=date_of_change, person_ids=[person_id])
+    date_of_change = datetime.strptime(date_of_change, "%Y-%m-%d")
+
     try:
-        person_db = person_from_db(person_id)
-
-        if person_db is None:
-            raise Exception('No person was found for "history_add" func')
-
-        history = History(person_db.id, date_of_change, changed_parameter, changed_value)
+        history = History(person_id, date_of_change, changed_parameter, changed_value)
 
         with db.session_scope() as session:
             session.add(history)
@@ -166,7 +204,8 @@ def history_add(person_id: int, date_of_change: str, changed_parameter: str, cha
         db.session.rollback()
 
 
-def genealogy_add(person_id: int, parent_id: int, generation: int):
+#TODO: in process
+def get_geneology_tree(person_id: int, parent_id: int, generation: int):
     try:
         person_db = person_from_db(person_id)
         parent_db = person_from_db(parent_id)
@@ -184,3 +223,7 @@ def genealogy_add(person_id: int, parent_id: int, generation: int):
 
     except DatabaseError:
         db.session.rollback()
+
+
+if __name__ == "__main__":
+    app()
