@@ -19,9 +19,8 @@ def run(drop=False):
         cmd = [DROP_DB_SCRIPT, db_name, db_user, password, host, port]
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output, errors = p.communicate()
-        if (output.decode()).split('\n')[0] == "DROP DATABASE" and (output.decode()).split('\n')[1] == "REASSIGN OWNED" \
-                and (output.decode()).split('\n')[2] == "DROP OWNED" and (output.decode()).split('\n')[
-            3] == "DROP ROLE":
+        if (output.decode()).split('\n')[0] == "DROP DATABASE" and (output.decode()).split('\n')[1] == "REASSIGN OWNED"\
+                and (output.decode()).split('\n')[2] == "DROP OWNED" and (output.decode()).split('\n')[3] == "DROP ROLE":
             print(f'Database {db_name} dropped with user {db_user} and password {password}')
             print("Database successfully dropped")
 
@@ -37,7 +36,7 @@ def run(drop=False):
         print(f'Database {db_name} created with user {db_user} and password {password}')
         extend_db_by_models()
         print('Database extend successfully')
-    elif (output.decode()).split('\n')[0] == 'ERROR:  database "passport_office" already exists':
+    elif (output.decode()).split('\n')[0] == f'ERROR:  database "{db_name}" already exists':
         print(f'Database {db_name} is already exists')
 
 

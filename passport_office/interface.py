@@ -55,7 +55,7 @@ def marriage_registration(husband_id: int, wife_id: int, date_of_marriage: str):
         data_check = DataCheck()
         person_check = PersonCheck()
         data_check.set_next(person_check)
-        data_check.check(data=date_of_marriage, person_ids=[husband_id, wife_id])
+        data_check.check(db=db, data=date_of_marriage, person_ids=[husband_id, wife_id])
         date_of_marriage = datetime.strptime(date_of_marriage, "%Y-%m-%d")
 
         marriage = Marriage(husband_id, wife_id, date_of_marriage)
@@ -82,11 +82,16 @@ def divorce_registration(marriage_id: int, date_of_divorce: str):
         data_check = DataCheck()
         marriage_check = MarriageCheck()
         data_check.set_next(marriage_check)
-        data_check.check(data=date_of_divorce, marriage_id=marriage_id)
+        data_check.check(db=db, data=date_of_divorce, marriage_id=marriage_id)
         date_of_divorce = datetime.strptime(date_of_divorce, "%Y-%m-%d")
-
         with db.session_scope() as session:
-            divorce = Divorce(marriage_id, date_of_divorce)
+            marriage = session.query(Marriage).filter_by(id=marriage_id).first()
+            additional_data = {
+                "date_of_marriage": f"{marriage.date_of_marriage}",
+                "duration": f"{date_of_divorce-marriage.date_of_marriage}"
+            }
+
+            divorce = Divorce(marriage_id, date_of_divorce, additional_data)
 
             session.add(divorce)
             change_marriage_status(marriage_id=marriage_id)  # marriage status on db
@@ -101,7 +106,7 @@ def death_registration(person_id: int, date_of_death: str):
     data_check = DataCheck()
     person_check = PersonCheck()
     data_check.set_next(person_check)
-    data_check.check(data=date_of_death, person_ids=[person_id])
+    data_check.check(db=db, data=date_of_death, person_ids=[person_id])
     date_of_death = datetime.strptime(date_of_death, "%Y-%m-%d")
     try:
 
@@ -140,7 +145,7 @@ def birth_registration(father_id: int, mother_id: int, child_id: int, date_of_bi
     data_check = DataCheck()
     person_check = PersonCheck()
     data_check.set_next(person_check)
-    data_check.check(data=date_of_birth, person_ids=[father_id,mother_id,child_id])
+    data_check.check(db=db, data=date_of_birth, person_ids=[father_id, mother_id, child_id])
     date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d")
 
     try:
@@ -165,7 +170,7 @@ def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of
     data_check = DataCheck()
     person_check = PersonCheck()
     data_check.set_next(person_check)
-    data_check.check(data=date_of_adopt, person_ids=[father_id,mother_id,child_id])
+    data_check.check(db=db, data=date_of_adopt, person_ids=[father_id, mother_id, child_id])
     date_of_adopt = datetime.strptime(date_of_adopt, "%Y-%m-%d")
 
     try:
@@ -190,7 +195,7 @@ def get_person_history(person_id: int, date_of_change: str, changed_parameter: s
     data_check = DataCheck()
     person_check = PersonCheck()
     data_check.set_next(person_check)
-    data_check.check(data=date_of_change, person_ids=[person_id])
+    data_check.check(db=db, data=date_of_change, person_ids=[person_id])
     date_of_change = datetime.strptime(date_of_change, "%Y-%m-%d")
 
     try:
@@ -204,8 +209,8 @@ def get_person_history(person_id: int, date_of_change: str, changed_parameter: s
         db.session.rollback()
 
 
-#TODO: in process
-def get_geneology_tree(person_id: int, parent_id: int, generation: int):
+# TODO: in process
+def get_genealogy_tree(person_id: int, parent_id: int, generation: int):
     try:
         person_db = person_from_db(person_id)
         parent_db = person_from_db(parent_id)

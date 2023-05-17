@@ -32,9 +32,9 @@ class Person(Base):
     genealogy = relationship('Genealogy', foreign_keys=genealogy_id, backref='person')
 
     def __init__(self, name, last_name, middle_name, date_of_birth, sex):
-        self.name = name
-        self.last_name = last_name
-        self.middle_name = middle_name
+        self.name = name.capitalize()
+        self.last_name = last_name.capitalize()
+        self.middle_name = middle_name.capitalize()
         self.date_of_birth = date_of_birth
         self.sex = sex
 
@@ -45,7 +45,7 @@ class Marriage(Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     husband_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
     wife_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
-    date_of_marriage = sqlalchemy.Column(sqlalchemy.String(15), nullable=False)
+    date_of_marriage = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
     status = sqlalchemy.Column(sqlalchemy.String(15), nullable=False)
 
     husband = relationship('Person', foreign_keys=[husband_id])
@@ -63,13 +63,15 @@ class Divorce(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     marriage_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('marriage.id'), nullable=False)
-    date_of_divorce = sqlalchemy.Column(sqlalchemy.String(15), nullable=False)
+    date_of_divorce = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
+    additional_data = sqlalchemy.Column(sqlalchemy.JSON())
 
     marriage = relationship('Marriage', foreign_keys=[marriage_id])
 
-    def __init__(self, marriage_id, date_of_divorce):
+    def __init__(self, marriage_id, date_of_divorce, additional_data):
         self.marriage_id = marriage_id
         self.date_of_divorce = date_of_divorce
+        self.additional_data = additional_data
 
 
 class Death(Base):
@@ -77,7 +79,7 @@ class Death(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=True)
-    date_of_death = sqlalchemy.Column(sqlalchemy.String(15), nullable=False)
+    date_of_death = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
 
     person_ = relationship('Person', foreign_keys=[person_id])
 
@@ -90,8 +92,8 @@ class SexChange(Base):
     __tablename__ = "person_sex_change"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
-    date_of_change = sqlalchemy.Column(sqlalchemy.String(15), nullable=False)
-    new_sex = sqlalchemy.Column(sqlalchemy.String(30), nullable=False)
+    date_of_change = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
+    new_sex = sqlalchemy.Column(sqlalchemy.String(10), nullable=False)
 
     person_ = relationship('Person', foreign_keys=[person_id])
 
@@ -108,7 +110,7 @@ class Birth(Base):
     father_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
     mother_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
     child_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
-    date_of_birth = sqlalchemy.Column(sqlalchemy.String(15), nullable=False)
+    date_of_birth = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
 
     father = relationship('Person', foreign_keys=[father_id])
     mother = relationship('Person', foreign_keys=[mother_id])
@@ -128,7 +130,7 @@ class Adoption(Base):
     adoptive_father_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'))
     adoptive_mother_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'))
     adopted_child_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
-    date_of_adopt = sqlalchemy.Column(sqlalchemy.String(15), nullable=False)
+    date_of_adopt = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
 
     adoptive_father = relationship('Person', foreign_keys=[adoptive_father_id])
     adoptive_mother = relationship('Person', foreign_keys=[adoptive_mother_id])
@@ -146,7 +148,7 @@ class History(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
-    date_of_change = sqlalchemy.Column(sqlalchemy.String(15), nullable=False)
+    date_of_change = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
     changed_parameter = sqlalchemy.Column(sqlalchemy.String(100), nullable=False)
     changed_value = sqlalchemy.Column(sqlalchemy.String(100), nullable=False)
 
