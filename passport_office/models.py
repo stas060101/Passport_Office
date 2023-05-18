@@ -1,5 +1,7 @@
+from typing import List
+
 import sqlalchemy
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -14,11 +16,12 @@ class Person(Base):
     middle_name = sqlalchemy.Column(sqlalchemy.String(128))
     date_of_birth = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
     sex = sqlalchemy.Column(sqlalchemy.String(30), nullable=False)
+    changed_sex: Mapped[List["SexChange"]] = relationship(back_populates="person")
 
     adopter_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("adoption.id"), nullable=True)
     marriage_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("marriage.id"), nullable=True)
     death_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("death.id"), nullable=True)
-    sex_change_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("person_sex_change.id"), nullable=True)
+    # sex_change_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("person_sex_change.id"), nullable=True)
     birth_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("birth.id"), nullable=True)
     history_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("history.id"), nullable=True)
     genealogy_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("genealogy.id"), nullable=True)
@@ -26,7 +29,7 @@ class Person(Base):
     adoption = relationship('Adoption', foreign_keys=adopter_id, backref="person")
     marriage = relationship('Marriage', foreign_keys=marriage_id, backref="person")
     death = relationship('Death', foreign_keys=death_id, backref='person')
-    sex_change = relationship('SexChange', foreign_keys=sex_change_id, backref='person')
+    # sex_change = relationship('SexChange', foreign_keys=sex_change_id, backref='person')
     birth = relationship('Birth', foreign_keys=birth_id, backref='person')
     history = relationship('History', foreign_keys=history_id, backref='person')
     genealogy = relationship('Genealogy', foreign_keys=genealogy_id, backref='person')
@@ -93,9 +96,9 @@ class SexChange(Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
     date_of_change = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
-    new_sex = sqlalchemy.Column(sqlalchemy.String(10), nullable=False)
+    new_sex = sqlalchemy.Column(sqlalchemy.String(30), nullable=False)
 
-    person_ = relationship('Person', foreign_keys=[person_id])
+    person: Mapped["Person"] = relationship(back_populates='changed_sex')
 
     def __init__(self, person_id, date_of_change, new_sex):
         self.person_id = person_id

@@ -136,6 +136,13 @@ def sex_change_registration(person_id: int, date_of_change: str, new_sex: str):
             session.add(sex_change)
             session.commit()
 
+
+            #tmp
+            sex_change_person = session.query(SexChange).filter_by(person_id=person_id).one_or_none()
+            person = session.query(Person).filter_by(id=person_id).one_or_none()
+            print(person.changed_sex.date_of_change)
+            print(sex_change_person.person.id)
+
     except DatabaseError:
         db.session.rollback()
 
