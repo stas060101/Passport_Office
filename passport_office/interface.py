@@ -61,8 +61,17 @@ def marriage_registration(husband_id: int, wife_id: int, date_of_marriage: str):
         marriage = Marriage(husband_id, wife_id, date_of_marriage)
 
         with db.session_scope() as session:
-            session.add(marriage)
-            session.commit()
+            # session.add(marriage)
+            # session.commit()
+            #
+            # marriage = session.query(Marriage).filter(
+            #     Marriage.wife_id == wife_id, Marriage.husband_id == husband_id
+            # ).one_or_none()
+            # print(marriage.wife)
+            # print(marriage.husband)
+
+            person = session.query(Person).filter(Person.id == husband_id).one_or_none()
+            print(person.marriage.status)
 
     except DatabaseError:
         db.session.rollback()

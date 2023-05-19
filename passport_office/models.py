@@ -16,23 +16,15 @@ class Person(Base):
     middle_name = sqlalchemy.Column(sqlalchemy.String(128))
     date_of_birth = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
     sex = sqlalchemy.Column(sqlalchemy.String(30), nullable=False)
+
     changed_sex: Mapped[List["SexChange"]] = relationship(back_populates="person")
-
-    adopter_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("adoption.id"), nullable=True)
-    marriage_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("marriage.id"), nullable=True)
-    death_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("death.id"), nullable=True)
-    # sex_change_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("person_sex_change.id"), nullable=True)
-    birth_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("birth.id"), nullable=True)
-    history_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("history.id"), nullable=True)
-    genealogy_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("genealogy.id"), nullable=True)
-
-    adoption = relationship('Adoption', foreign_keys=adopter_id, backref="person")
-    marriage = relationship('Marriage', foreign_keys=marriage_id, backref="person")
-    death = relationship('Death', foreign_keys=death_id, backref='person')
-    # sex_change = relationship('SexChange', foreign_keys=sex_change_id, backref='person')
-    birth = relationship('Birth', foreign_keys=birth_id, backref='person')
-    history = relationship('History', foreign_keys=history_id, backref='person')
-    genealogy = relationship('Genealogy', foreign_keys=genealogy_id, backref='person')
+    marriage: Mapped["Marriage"] = relationship(back_populates='person', primaryjoin="or_(Person.id==Marriage.husband_id, Person.id==Marriage.wife_id)")
+    death: Mapped["Death"] = relationship(back_populates='person')
+    birth: Mapped["Birth"] = relationship(back_populates='person', primaryjoin="or_(Person.id==Birth.father_id,\
+     Person.id==Birth.mother_id, Person.id==Birth.child_id)")
+    history: Mapped["History"] = relationship(back_populates="person")
+    adoption: Mapped["Adoption"] = relationship(back_populates='person', primaryjoin="or_(Person.id==Adoption.adoptive_father_id,\
+     Person.id==Adoption.adoptive_mother_id, Person.id==Adoption.adopted_child_id)")
 
     def __init__(self, name, last_name, middle_name, date_of_birth, sex):
         self.name = name.capitalize()
@@ -51,8 +43,12 @@ class Marriage(Base):
     date_of_marriage = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
     status = sqlalchemy.Column(sqlalchemy.String(15), nullable=False)
 
-    husband = relationship('Person', foreign_keys=[husband_id])
-    wife = relationship('Person', foreign_keys=[wife_id])
+    husband = relationship('Person', foreign_keys=[husband_id], back_populates='marriage')
+    wife = relationship('Person', foreign_keys=[wife_id], back_populates='marriage')
+    person = relationship('Person', back_populates='marriage', foreign_keys=[husband_id, wife_id],
+                          primaryjoin="or_(Person.id==Marriage.husband_id, Person.id==Marriage.wife_id)")
+
+    divorce: Mapped["Divorce"] = relationship(back_populates="marriage")
 
     def __init__(self, husband_id, wife_id, date_of_marriage):
         self.husband_id = husband_id
@@ -69,7 +65,7 @@ class Divorce(Base):
     date_of_divorce = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
     additional_data = sqlalchemy.Column(sqlalchemy.JSON())
 
-    marriage = relationship('Marriage', foreign_keys=[marriage_id])
+    marriage: Mapped["Marriage"] = relationship( back_populates="divorce")
 
     def __init__(self, marriage_id, date_of_divorce, additional_data):
         self.marriage_id = marriage_id
@@ -84,7 +80,7 @@ class Death(Base):
     person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=True)
     date_of_death = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
 
-    person_ = relationship('Person', foreign_keys=[person_id])
+    person: Mapped["Person"] = relationship(back_populates="death")
 
     def __init__(self, person_id, date_of_death):
         self.person_id = person_id
@@ -115,9 +111,12 @@ class Birth(Base):
     child_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
     date_of_birth = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
 
-    father = relationship('Person', foreign_keys=[father_id])
-    mother = relationship('Person', foreign_keys=[mother_id])
-    child = relationship('Person', foreign_keys=[child_id])
+    father = relationship('Person', foreign_keys=[father_id], back_populates='birth')
+    mother = relationship('Person', foreign_keys=[mother_id], back_populates='birth')
+    child = relationship('Person', foreign_keys=[child_id], back_populates='birth')
+
+    person = relationship('Person', back_populates='birth', foreign_keys=[father_id, mother_id, child_id],
+                          primaryjoin="or_(Person.id==Birth.father_id, Person.id==Birth.mother_id, Person.id==Birth.child_id)")
 
     def __init__(self, father_id, mother_id, child_id, date_of_birth):
         self.father_id = father_id
@@ -135,9 +134,13 @@ class Adoption(Base):
     adopted_child_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
     date_of_adopt = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
 
-    adoptive_father = relationship('Person', foreign_keys=[adoptive_father_id])
-    adoptive_mother = relationship('Person', foreign_keys=[adoptive_mother_id])
-    adoptive_child = relationship('Person', foreign_keys=[adopted_child_id])
+    adoptive_father = relationship('Person', foreign_keys=[adoptive_father_id], back_populates='adoption')
+    adoptive_mother = relationship('Person', foreign_keys=[adoptive_mother_id], back_populates='adoption')
+    adoptive_child = relationship('Person', foreign_keys=[adopted_child_id], back_populates='adoption')
+
+    person = relationship('Person', back_populates='adoption', foreign_keys=[adoptive_father_id, adoptive_mother_id, adopted_child_id],
+                          primaryjoin="or_(Person.id==Adoption.adoptive_father_id,\
+     Person.id==Adoption.adoptive_mother_id, Person.id==Adoption.adopted_child_id)")
 
     def __init__(self, adoptive_father_id, adoptive_mother_id, adopted_child_id, date_of_adopt):
         self.adoptive_father_id = adoptive_father_id
@@ -155,7 +158,7 @@ class History(Base):
     changed_parameter = sqlalchemy.Column(sqlalchemy.String(100), nullable=False)
     changed_value = sqlalchemy.Column(sqlalchemy.String(100), nullable=False)
 
-    person_ = relationship('Person', foreign_keys=[person_id])
+    person: Mapped["Person"] = relationship(back_populates="history")
 
     def __init__(self, person_id, date_of_change, changed_parameter, changed_value):
         self.person_id = person_id
