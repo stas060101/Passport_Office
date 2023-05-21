@@ -3,6 +3,8 @@ import typer
 from sqlalchemy.exc import DatabaseError
 
 from datetime import datetime
+
+from bulder.builder import Director, FamilyTreeBuilder
 from passport_db.db import PassportDB
 from passport_office.chain import DataCheck, SexCheck, PersonCheck, MarriageCheck
 from passport_office.models import Person, Marriage, Divorce, Death, SexChange, Birth, Adoption, History, Genealogy
@@ -23,16 +25,20 @@ def person_registration(name: str, last_name: str, middle_name: str, date_of_bir
     data_check.set_next(sex_check)
     data_check.check(data=date_of_birth, sex=sex)
     date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d")
-
+    person_id = None
     try:
         person = Person(name, last_name, middle_name, date_of_birth, sex)
 
         with db.session_scope() as session:
             session.add(person)
+            session.flush()
+            person_id = person.id
             session.commit()
 
     except DatabaseError:
         db.session_scope.rollback()
+
+    return person_id
 
 
 # @app.command()
@@ -61,17 +67,8 @@ def marriage_registration(husband_id: int, wife_id: int, date_of_marriage: str):
         marriage = Marriage(husband_id, wife_id, date_of_marriage)
 
         with db.session_scope() as session:
-            # session.add(marriage)
-            # session.commit()
-            #
-            # marriage = session.query(Marriage).filter(
-            #     Marriage.wife_id == wife_id, Marriage.husband_id == husband_id
-            # ).one_or_none()
-            # print(marriage.wife)
-            # print(marriage.husband)
-
-            person = session.query(Person).filter(Person.id == husband_id).one_or_none()
-            print(person.marriage.status)
+            session.add(marriage)
+            session.commit()
 
     except DatabaseError:
         db.session.rollback()
@@ -145,37 +142,35 @@ def sex_change_registration(person_id: int, date_of_change: str, new_sex: str):
             session.add(sex_change)
             session.commit()
 
-
-            #tmp
-            sex_change_person = session.query(SexChange).filter_by(person_id=person_id).one_or_none()
-            person = session.query(Person).filter_by(id=person_id).one_or_none()
-            print(person.changed_sex.date_of_change)
-            print(sex_change_person.person.id)
-
     except DatabaseError:
         db.session.rollback()
 
 
 @app.command()
-def birth_registration(father_id: int, mother_id: int, child_id: int, date_of_birth: str):
-    data_check = DataCheck()
-    person_check = PersonCheck()
-    data_check.set_next(person_check)
-    data_check.check(db=db, data=date_of_birth, person_ids=[father_id, mother_id, child_id])
-    date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d")
+def birth_registration(father_id: int, mother_id: int, date_of_birth: str, child_data: dict):
+    # child_registration_id = person_registration(**child_data)
+    #
+    # data_check = DataCheck()
+    # person_check = PersonCheck()
+    # data_check.set_next(person_check)
+    # data_check.check(db=db, data=date_of_birth, person_ids=[father_id, mother_id, child_registration_id])
+    # date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d")
 
     try:
 
-        birth = Birth(father_id, mother_id, child_id, date_of_birth)
+        # birth = Birth(father_id, mother_id, child_registration_id, date_of_birth)
 
         with db.session_scope() as session:
-            session.add(birth)
-            session.commit()
+            # session.add(birth)
+            # session.commit()
 
-        # with db.session_scope() as session:
-        #     birth = session.query(Birth).all()[0]
-        #     name = birth.child.last_name
-        #     print(name)
+            child = session.query(Person).filter_by(id=3).one()
+            # grand_father = child.birth.father.birth.father.name
+            # grand_mother = child.birth.mother.birth.mother.name
+            children = child.children
+            # grand_father = father.birth.father.name
+            # grand_mother = mother.birth.father.name
+            print([child.person.name for child in children])
 
     except DatabaseError:
         db.session.rollback()
@@ -196,11 +191,6 @@ def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of
         with db.session_scope() as session:
             session.add(adoption)
             session.commit()
-
-        # with db.session_scope() as session:
-        #     adoption = session.query(Adoption).all()[0]
-        #     name_child = adoption.adoptive_child.name
-        #     print(name_child)
 
     except DatabaseError:
         db.session.rollback()
@@ -226,23 +216,22 @@ def get_person_history(person_id: int, date_of_change: str, changed_parameter: s
 
 
 # TODO: in process
-def get_genealogy_tree(person_id: int, parent_id: int, generation: int):
+def get_genealogy_tree(person_id: int,  generation: int, format: str):
     try:
-        person_db = person_from_db(person_id)
-        parent_db = person_from_db(parent_id)
 
-        if person_db is None:
-            raise Exception('No person_db_id was found for "genealogy_add" func')
-        if parent_db is None:
-            raise Exception('No parent_db_id was found for "genealogy_add" func')
+        person_check = PersonCheck()
+        person_check.check(db=db, person_ids=[person_id])
 
-        genealogy = Genealogy(person_db.id, parent_db.id, generation)
+        director = Director(generation_count=generation)
+        builder = FamilyTreeBuilder(person_id=person_id)
+        director.builder = builder
+        director.build_generation_level()
 
-        with db.session_scope() as session:
-            session.add(genealogy)
-            session.commit()
+
+        #TODO: add strategy export
 
     except DatabaseError:
+        #TODO: db has no attribute like session, need session_scope()
         db.session.rollback()
 
 

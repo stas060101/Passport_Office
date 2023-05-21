@@ -1,6 +1,7 @@
 from typing import List
 
 import sqlalchemy
+from sqlalchemy.event import listens_for
 from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -17,6 +18,8 @@ class Person(Base):
     date_of_birth = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
     sex = sqlalchemy.Column(sqlalchemy.String(30), nullable=False)
 
+    children: Mapped[List["Child"]] = relationship(back_populates='parent', primaryjoin="or_(Person.id==Child.father_id,\
+     Person.id==Child.mother_id)")
     changed_sex: Mapped[List["SexChange"]] = relationship(back_populates="person")
     marriage: Mapped["Marriage"] = relationship(back_populates='person', primaryjoin="or_(Person.id==Marriage.husband_id, Person.id==Marriage.wife_id)")
     death: Mapped["Death"] = relationship(back_populates='person')
@@ -102,6 +105,17 @@ class SexChange(Base):
         self.new_sex = new_sex
 
 
+class Child(Base):
+    __tablename__ = 'child'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    mother_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    father_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
+    parent: Mapped["Person"] = relationship(back_populates='children', foreign_keys=[father_id, mother_id],
+                                            primaryjoin="or_(Person.id==Child.father_id, Person.id==Child.mother_id)")
+    person: Mapped["Person"] = relationship(foreign_keys=person_id)
+
+
 class Birth(Base):
     __tablename__ = "birth"
 
@@ -123,6 +137,16 @@ class Birth(Base):
         self.mother_id = mother_id
         self.child_id = child_id
         self.date_of_birth = date_of_birth
+
+
+@listens_for(Birth, 'after_insert')
+def add_birth_to_children(mapper, connection, target):
+    child_id = target.child_id
+    connection.execute(
+        Child.__table__.insert().values(father_id=target.father_id,
+                                        mother_id=target.mother_id,
+                                        person_id=child_id)
+    )
 
 
 class Adoption(Base):
