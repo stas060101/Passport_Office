@@ -26,7 +26,7 @@ class Person(Base):
     birth: Mapped["Birth"] = relationship(back_populates='person', primaryjoin="or_(Person.id==Birth.father_id,\
      Person.id==Birth.mother_id, Person.id==Birth.child_id)")
     history: Mapped["History"] = relationship(back_populates="person")
-    adoption: Mapped["Adoption"] = relationship(back_populates='person', primaryjoin="or_(Person.id==Adoption.adoptive_father_id,\
+    adoption: Mapped[List["Adoption"]] = relationship(back_populates='person', primaryjoin="or_(Person.id==Adoption.adoptive_father_id,\
      Person.id==Adoption.adoptive_mother_id, Person.id==Adoption.adopted_child_id)")
 
     def __init__(self, name, last_name, middle_name, date_of_birth, sex):
@@ -190,19 +190,3 @@ class History(Base):
         self.changed_parameter = changed_parameter
         self.changed_value = changed_value
 
-
-class Genealogy(Base):
-    __tablename__ = "genealogy"
-
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
-    parent_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
-    generation = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-
-    person_ = relationship('Person', foreign_keys=[person_id])
-    parent_ = relationship('Person', foreign_keys=[parent_id])
-
-    def __init__(self, person_id, parent_id, generation):
-        self.person_id = person_id
-        self.parent_id = parent_id
-        self.generation = generation

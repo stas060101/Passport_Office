@@ -1,0 +1,11 @@
+{
+    "children_and_grandchildren": {},
+    "produce_1th_gen_ancestors": {},
+    "produce_2th_gen_ancestors": {},
+    "produce_3th_gen_ancestors": {
+        "grand_father_by_father": "No data about grand father by father",
+        "grand_father_by_mother": "No data about grand father by mother",
+        "grand_mother_by_father": "No data about grand mother by father",
+        "grand_mother_by_mother": "No data about grand mother by mother"
+    }
+}

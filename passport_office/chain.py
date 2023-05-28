@@ -80,6 +80,7 @@ class PersonCheck(AbstractCheck):
                         raise Exception('No child with this ID')
 
             print('successfully validation - person')
+            super().check(db=db, person_ids=person_ids)
 
 
 class MarriageCheck(AbstractCheck):
@@ -90,3 +91,14 @@ class MarriageCheck(AbstractCheck):
                 raise Exception('No marriage with this ID')
 
             print('successfully validation - marriage')
+
+
+class MarriageCheckByPerson(AbstractCheck):
+    def check(self, db=None, data=None, sex=None, person_ids=None, marriage_id=None):
+        with db.session_scope() as session:
+            marriage = session.query(Marriage).filter(Marriage.husband_id == person_ids[0], Marriage.wife_id ==
+                                                      person_ids[1]).one_or_none()
+            if marriage is None:
+                raise Exception('No marriage with this persons')
+
+

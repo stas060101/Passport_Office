@@ -4,10 +4,10 @@ from sqlalchemy.exc import DatabaseError
 
 from datetime import datetime
 
-from bulder.builder import Director, FamilyTreeBuilder
 from passport_db.db import PassportDB
-from passport_office.chain import DataCheck, SexCheck, PersonCheck, MarriageCheck
-from passport_office.models import Person, Marriage, Divorce, Death, SexChange, Birth, Adoption, History, Genealogy
+from passport_office.chain import DataCheck, SexCheck, PersonCheck, MarriageCheck, MarriageCheckByPerson
+from passport_office.models import Person, Marriage, Divorce, Death, SexChange, Birth, Adoption, History
+from strategy.strategy import Context, JSONStrategy, PrintStrategy
 
 db = PassportDB()
 app = typer.Typer()
@@ -39,20 +39,6 @@ def person_registration(name: str, last_name: str, middle_name: str, date_of_bir
         db.session_scope.rollback()
 
     return person_id
-
-
-# @app.command()
-# def get_persons(names: list = None, last_names: list = None, middle_names: list = None):
-#     with db.session_scope() as session:
-#         query = session.query(Person)
-#         if names:
-#             query = query.filter(Person.name.in_(names))
-#         elif last_names:
-#             query = query.filter(Person.last_name.in_(last_names))
-#         elif middle_names:
-#             query = query.filter(Person.middle_name.in_(middle_names))
-#
-#         return query.all()
 
 
 @app.command()
@@ -148,29 +134,22 @@ def sex_change_registration(person_id: int, date_of_change: str, new_sex: str):
 
 @app.command()
 def birth_registration(father_id: int, mother_id: int, date_of_birth: str, child_data: dict):
-    # child_registration_id = person_registration(**child_data)
-    #
-    # data_check = DataCheck()
-    # person_check = PersonCheck()
-    # data_check.set_next(person_check)
-    # data_check.check(db=db, data=date_of_birth, person_ids=[father_id, mother_id, child_registration_id])
-    # date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d")
+    child_registration_id = person_registration(**child_data)
+
+    data_check = DataCheck()
+    person_check = PersonCheck()
+    marriage_check = MarriageCheckByPerson()
+    data_check.set_next(person_check).set_next(marriage_check)
+    data_check.check(db=db, data=date_of_birth, person_ids=[father_id, mother_id, child_registration_id])
+    date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d")
 
     try:
 
-        # birth = Birth(father_id, mother_id, child_registration_id, date_of_birth)
+        birth = Birth(father_id, mother_id, child_registration_id, date_of_birth)
 
         with db.session_scope() as session:
-            # session.add(birth)
-            # session.commit()
-
-            child = session.query(Person).filter_by(id=3).one()
-            # grand_father = child.birth.father.birth.father.name
-            # grand_mother = child.birth.mother.birth.mother.name
-            children = child.children
-            # grand_father = father.birth.father.name
-            # grand_mother = mother.birth.father.name
-            print([child.person.name for child in children])
+            session.add(birth)
+            session.commit()
 
     except DatabaseError:
         db.session.rollback()
@@ -178,6 +157,7 @@ def birth_registration(father_id: int, mother_id: int, date_of_birth: str, child
 
 @app.command()
 def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of_adopt: str):
+
     data_check = DataCheck()
     person_check = PersonCheck()
     data_check.set_next(person_check)
@@ -216,19 +196,31 @@ def get_person_history(person_id: int, date_of_change: str, changed_parameter: s
 
 
 # TODO: in process
-def get_genealogy_tree(person_id: int,  generation: int, format: str):
+def get_genealogy_tree(person_id: int, format: str="PRINT", level: int=2):
     try:
 
         person_check = PersonCheck()
         person_check.check(db=db, person_ids=[person_id])
 
-        director = Director(generation_count=generation)
-        builder = FamilyTreeBuilder(person_id=person_id)
-        director.builder = builder
-        director.build_generation_level()
+        # director = Director(generation_count=generation)
+        # builder = FamilyTreeBuilder(person_id=person_id)
+        # director.builder = builder
+        # director.build_generation_level()
 
+        context = Context(person_id, level=level)
 
-        #TODO: add strategy export
+        if format == "json" or format == "JSON" and level is None:
+            print("Client: Strategy is set to json save.")
+            context.strategy = JSONStrategy()
+            context.do_some_business_logic()
+
+        elif format == "print" or format == "PRINT" and level is not None:
+            print("Client: Strategy is set to print.")
+            context.strategy = PrintStrategy()
+            context.do_some_business_logic()
+
+        else:
+            print("Wrong input type of saving file")
 
     except DatabaseError:
         #TODO: db has no attribute like session, need session_scope()

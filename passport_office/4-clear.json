@@ -1,0 +1,44 @@
+{
+   "grand mother by father": "No data about grand mother by father",
+   "grand father by father": "No data about grand father by father",
+   "grand mother by mother": "No data about grand mother by mother",
+   "grand father by mother": "No data about grand father by mother",
+   "mother": "No data about mother",
+   "father": "No data about father",
+   "brothers:": "No Data about brother",
+   "sisters": "No Data about sisters",
+   "person": {
+      "name": "Ira",
+      "last_name": "Kulesha",
+      "date_of_birth": "1957-05-21 00:00:00",
+      "id": 4,
+      "middle_name": "Andriyvna",
+      "sex": "woman"
+   },
+   "children/grand children:": {
+      "Ira - Petro": {
+         "brother": [
+            {
+               "date_of_birth": "1980-07-20 00:00:00",
+               "id": 6,
+               "last_name": "Loh",
+               "middle_name": "Mikhaylovich",
+               "name": "Petro",
+               "sex": "man"
+            }
+         ]
+      },
+      "Petro - Sanya": {
+         "brother": [
+            {
+               "date_of_birth": "2001-07-20 00:00:00",
+               "id": 7,
+               "last_name": "Loh",
+               "middle_name": "Mikhaylovich",
+               "name": "Sanya",
+               "sex": "man"
+            }
+         ]
+      }
+   }
+}

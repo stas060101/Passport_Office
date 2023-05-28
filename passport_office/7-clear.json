@@ -1,0 +1,70 @@
+{
+   "grand mother by father": {
+      "date_of_birth": "1957-05-21 00:00:00",
+      "id": 4,
+      "last_name": "Kulesha",
+      "middle_name": "Andriyvna",
+      "name": "Ira",
+      "sex": "woman"
+   },
+   "grand father by father": {
+      "date_of_birth": "1955-05-21 00:00:00",
+      "id": 5,
+      "last_name": "Loh",
+      "middle_name": "Artemovich",
+      "name": "Mikhaylo",
+      "sex": "man"
+   },
+   "grand mother by mother": {
+      "date_of_birth": "1957-07-20 00:00:00",
+      "id": 1,
+      "last_name": "Ivanova",
+      "middle_name": "Abrekovna",
+      "name": "Rozalita",
+      "sex": "woman"
+   },
+   "grand father by mother": {
+      "date_of_birth": "1955-07-20 00:00:00",
+      "id": 2,
+      "last_name": "Shapka",
+      "middle_name": "Olegovich",
+      "name": "Sasha",
+      "sex": "man"
+   },
+   "mother": {
+      "date_of_birth": "1980-07-20 00:00:00",
+      "id": 3,
+      "last_name": "Shapka",
+      "middle_name": "Alexsandrovna",
+      "name": "Mariya",
+      "sex": "woman"
+   },
+   "father": {
+      "date_of_birth": "1980-07-20 00:00:00",
+      "id": 6,
+      "last_name": "Loh",
+      "middle_name": "Mikhaylovich",
+      "name": "Petro",
+      "sex": "man"
+   },
+   "brothers:": [
+      {
+         "date_of_birth": "2001-07-20 00:00:00",
+         "id": 7,
+         "last_name": "Loh",
+         "middle_name": "Mikhaylovich",
+         "name": "Sanya",
+         "sex": "man"
+      }
+   ],
+   "sisters": "No Data about sisters",
+   "person": {
+      "id": 7,
+      "last_name": "Loh",
+      "date_of_birth": "2001-07-20 00:00:00",
+      "name": "Sanya",
+      "middle_name": "Mikhaylovich",
+      "sex": "man"
+   },
+   "children/grand children:": {}
+}

@@ -1,0 +1,19 @@
+{
+   "grand mother by father": "No data about grand mother by father",
+   "grand father by father": "No data about grand father by father",
+   "grand mother by mother": "No data about grand mother by mother",
+   "grand father by mother": "No data about grand father by mother",
+   "mother": "No Data about mother",
+   "father": "No Data about father",
+   "brothers:": "No Data about brother",
+   "sisters": "No Data about sisters",
+   "person": {
+      "id": 8,
+      "last_name": "Loh",
+      "date_of_birth": "2020-05-21 00:00:00",
+      "name": "Mikhaylo",
+      "middle_name": "Artemovich",
+      "sex": "man"
+   },
+   "children/grand children:": {}
+}

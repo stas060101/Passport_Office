@@ -1,0 +1,67 @@
+{
+    "children_and_grandchildren": {},
+    "produce_1th_gen_ancestors": {
+        "brother": [
+            {
+                "date_of_birth": "2001-07-20 00:00:00",
+                "id": 7,
+                "last_name": "Loh",
+                "middle_name": "Mikhaylovich",
+                "name": "Sanya",
+                "sex": "man"
+            }
+        ]
+    },
+    "produce_2th_gen_ancestors": {
+        "father": {
+            "date_of_birth": "1980-07-20 00:00:00",
+            "id": 6,
+            "last_name": "Loh",
+            "middle_name": "Mikhaylovich",
+            "name": "Petro",
+            "sex": "man"
+        },
+        "mother": {
+            "date_of_birth": "1980-07-20 00:00:00",
+            "id": 3,
+            "last_name": "Shapka",
+            "middle_name": "Alexsandrovna",
+            "name": "Mariya",
+            "sex": "woman"
+        }
+    },
+    "produce_3th_gen_ancestors": {
+        "grand_father_by_father": {
+            "date_of_birth": "1955-05-21 00:00:00",
+            "id": 5,
+            "last_name": "Loh",
+            "middle_name": "Artemovich",
+            "name": "Mikhaylo",
+            "sex": "man"
+        },
+        "grand_father_by_mother": {
+            "date_of_birth": "1955-07-20 00:00:00",
+            "id": 2,
+            "last_name": "Shapka",
+            "middle_name": "Olegovich",
+            "name": "Sasha",
+            "sex": "man"
+        },
+        "grand_mother_by_father": {
+            "date_of_birth": "1957-05-21 00:00:00",
+            "id": 4,
+            "last_name": "Kulesha",
+            "middle_name": "Andriyvna",
+            "name": "Ira",
+            "sex": "woman"
+        },
+        "grand_mother_by_mother": {
+            "date_of_birth": "1957-07-20 00:00:00",
+            "id": 1,
+            "last_name": "Ivanova",
+            "middle_name": "Abrekovna",
+            "name": "Rozalita",
+            "sex": "woman"
+        }
+    }
+}

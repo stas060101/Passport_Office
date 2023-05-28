@@ -1,0 +1,39 @@
+{
+    "children_and_grandchildren": {
+        "Ira - Petro": {
+            "brother": [
+                {
+                    "date_of_birth": "1980-07-20 00:00:00",
+                    "id": 6,
+                    "last_name": "Loh",
+                    "middle_name": "Mikhaylovich",
+                    "name": "Petro",
+                    "sex": "man"
+                }
+            ]
+        },
+        "Petro - Sanya": {
+            "brother": [
+                {
+                    "date_of_birth": "2001-07-20 00:00:00",
+                    "id": 7,
+                    "last_name": "Loh",
+                    "middle_name": "Mikhaylovich",
+                    "name": "Sanya",
+                    "sex": "man"
+                }
+            ]
+        }
+    },
+    "produce_1th_gen_ancestors": {},
+    "produce_2th_gen_ancestors": {
+        "father": "No data about father",
+        "mother": "No data about mother"
+    },
+    "produce_3th_gen_ancestors": {
+        "grand_father_by_father": "No data about grand father by father",
+        "grand_father_by_mother": "No data about grand father by mother",
+        "grand_mother_by_father": "No data about grand mother by father",
+        "grand_mother_by_mother": "No data about grand mother by mother"
+    }
+}
