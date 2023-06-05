@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import datetime
 import json
-import pathlib
-from pathlib import Path
 from abc import ABC, abstractmethod
 
 from passport_db.db import PassportDB

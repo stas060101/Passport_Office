@@ -37,6 +37,16 @@ class Person(Base):
         self.sex = sex
 
 
+@listens_for(Person, 'after_insert')
+def add_history(mapper, connection, target):
+    connection.execute(
+        History.__table__.insert().values(person_id=target.id,
+                                          date_of_change=target.date_of_birth,
+                                          changed_parameter="person_registration",
+                                          changed_value=None)
+    )
+
+
 class Marriage(Base):
     __tablename__ = "marriage"
 
@@ -60,6 +70,18 @@ class Marriage(Base):
         self.status = 'active'
 
 
+@listens_for(Marriage, 'after_insert')
+def add_history(mapper, connection, target):
+    target_ids = [target.husband_id, target.wife_id]
+    for target_id in target_ids:
+        connection.execute(
+            History.__table__.insert().values(person_id=target_id,
+                                              date_of_change=target.date_of_marriage,
+                                              changed_parameter="marriage",
+                                              changed_value=None)
+        )
+
+
 class Divorce(Base):
     __tablename__ = "divorce"
 
@@ -68,12 +90,25 @@ class Divorce(Base):
     date_of_divorce = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
     additional_data = sqlalchemy.Column(sqlalchemy.JSON())
 
-    marriage: Mapped["Marriage"] = relationship( back_populates="divorce")
+    marriage: Mapped["Marriage"] = relationship(foreign_keys=marriage_id, back_populates="divorce")
 
     def __init__(self, marriage_id, date_of_divorce, additional_data):
         self.marriage_id = marriage_id
         self.date_of_divorce = date_of_divorce
         self.additional_data = additional_data
+
+
+@listens_for(Divorce, 'after_insert')
+def add_history(mapper, connection, target):
+    res = connection.execute(sqlalchemy.text(f"SELECT husband_id, wife_id FROM marriage WHERE marriage.id = {target.marriage_id}")).fetchall()
+    target_ids = [res[0][0], res[0][1]]
+    for target_id in target_ids:
+        connection.execute(
+            History.__table__.insert().values(person_id=target_id,
+                                              date_of_change=target.date_of_divorce,
+                                              changed_parameter="divorce",
+                                              changed_value=None)
+        )
 
 
 class Death(Base):
@@ -90,6 +125,17 @@ class Death(Base):
         self.date_of_death = date_of_death
 
 
+@listens_for(Death, 'after_insert')
+def add_history(mapper, connection, target):
+    target_id = target.person_id
+    connection.execute(
+        History.__table__.insert().values(person_id=target_id,
+                                          date_of_change=target.date_of_death,
+                                          changed_parameter="death",
+                                          changed_value=None)
+    )
+
+
 class SexChange(Base):
     __tablename__ = "person_sex_change"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
@@ -103,6 +149,17 @@ class SexChange(Base):
         self.person_id = person_id
         self.date_of_change = date_of_change
         self.new_sex = new_sex
+
+
+@listens_for(SexChange, 'after_insert')
+def add_history(mapper, connection, target):
+    target_id = target.person_id
+    connection.execute(
+        History.__table__.insert().values(person_id=target_id,
+                                          date_of_change=target.date_of_change,
+                                          changed_parameter="sex_change",
+                                          changed_value=target.new_sex)
+    )
 
 
 class Child(Base):
@@ -149,6 +206,18 @@ def add_birth_to_children(mapper, connection, target):
     )
 
 
+@listens_for(Birth, 'after_insert')
+def add_history(mapper, connection, target):
+    target_ids = [target.father_id, target.mother_id]
+    for target_id in target_ids:
+        connection.execute(
+            History.__table__.insert().values(person_id=target_id,
+                                              date_of_change=target.date_of_birth,
+                                              changed_parameter="child birth",
+                                              changed_value=target.child_id)
+        )
+
+
 class Adoption(Base):
     __tablename__ = "adoption"
 
@@ -173,6 +242,18 @@ class Adoption(Base):
         self.date_of_adopt = date_of_adopt
 
 
+@listens_for(Adoption, 'after_insert')
+def add_history(mapper, connection, target):
+    target_ids = [target.adoptive_father_id, target.adoptive_mother_id]
+    for target_id in target_ids:
+        connection.execute(
+            History.__table__.insert().values(person_id=target_id,
+                                              date_of_change=target.date_of_adopt,
+                                              changed_parameter="adopted child",
+                                              changed_value=target.adopted_child_id)
+        )
+
+
 class History(Base):
     __tablename__ = "history"
 
@@ -180,7 +261,7 @@ class History(Base):
     person_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('person.id'), nullable=False)
     date_of_change = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=False)
     changed_parameter = sqlalchemy.Column(sqlalchemy.String(100), nullable=False)
-    changed_value = sqlalchemy.Column(sqlalchemy.String(100), nullable=False)
+    changed_value = sqlalchemy.Column(sqlalchemy.String(100), nullable=True)
 
     person: Mapped["Person"] = relationship(back_populates="history")
 
@@ -189,4 +270,3 @@ class History(Base):
         self.date_of_change = date_of_change
         self.changed_parameter = changed_parameter
         self.changed_value = changed_value
-

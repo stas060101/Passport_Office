@@ -59,13 +59,14 @@ def marriage_registration(husband_id: int, wife_id: int, date_of_marriage: str):
     except DatabaseError:
         db.session.rollback()
 
+    return marriage
+
 
 def change_marriage_status(marriage_id):
     with db.session_scope() as session:
         marriage = session.query(Marriage).filter_by(id=marriage_id).one()
         marriage.status = "annulled"
         session.flush()
-        session.commit()
 
 
 @app.command()
@@ -85,8 +86,7 @@ def divorce_registration(marriage_id: int, date_of_divorce: str):
 
             divorce = Divorce(marriage_id, date_of_divorce, additional_data)
 
-            session.add(divorce)
-            change_marriage_status(marriage_id=marriage_id)  # marriage status on db
+            session.add(divorce)  # marriage status on db
             session.commit()
 
     except DatabaseError:
@@ -125,6 +125,9 @@ def sex_change_registration(person_id: int, date_of_change: str, new_sex: str):
         sex_change = SexChange(person_id, date_of_change, new_sex)
 
         with db.session_scope() as session:
+            person = session.query(Person).filter_by(id=person_id).one()
+            person.sex = new_sex
+            session.add(person)
             session.add(sex_change)
             session.commit()
 
@@ -177,22 +180,19 @@ def adoption_registration(father_id: int, mother_id: int, child_id: int, date_of
 
 
 @app.command()
-def get_person_history(person_id: int, date_of_change: str, changed_parameter: str, changed_value: str):
-    data_check = DataCheck()
+def get_person_history(person_id: int):
     person_check = PersonCheck()
-    data_check.set_next(person_check)
-    data_check.check(db=db, data=date_of_change, person_ids=[person_id])
-    date_of_change = datetime.strptime(date_of_change, "%Y-%m-%d")
-
+    person_check.check(db=db, person_ids=[person_id])
     try:
-        history = History(person_id, date_of_change, changed_parameter, changed_value)
-
         with db.session_scope() as session:
-            session.add(history)
-            session.commit()
+            history_scope = session.query(History).filter_by(person_id = person_id).all()
+            for history_elem in history_scope:
+                print(history_elem.date_of_change)
+                print('\t' + history_elem.changed_parameter)
+                print('\t' + "null" if history_elem.changed_value is None else history_elem.changed_value)
 
     except DatabaseError:
-        db.session.rollback()
+        db.session_scope().rollback()
 
 
 # TODO: in process
